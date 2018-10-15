@@ -1,21 +1,12 @@
-package minheap
+package heap
 
 import "fmt"
 
-// HeapObject Stores a something
-type HeapObject struct {
-	Index, Score int
-	Value        interface{}
-}
-
-// Heap A collection of HeapObject
-type Heap []HeapObject
-
-// ROOT is the root node
-const ROOT = 1
+// MinHeap A collection of HeapObject
+type MinHeap []HeapObject
 
 // LessThanParent True if ho.Index/2 Score less than our score
-func (heap Heap) LessThanParent(ho HeapObject) bool {
+func (heap MinHeap) LessThanParent(ho HeapObject) bool {
 	if ho.Index == 1 {
 		return false
 	}
@@ -26,20 +17,80 @@ func (heap Heap) LessThanParent(ho HeapObject) bool {
 	return false
 }
 
-// Swap Swap a into b's position and b to a's
-func (heap Heap) Swap(child, parent HeapObject) Heap {
-	fmt.Printf("Swapping %v with %v\n", child, parent)
-	t := heap[parent.Index]
-	t.Index = child.Index
+// LessThanIndex Returns true if the HeapObject at Index has a lower score than score
+func (heap MinHeap) LessThanIndex(score, index int) bool {
+	if index < len(heap) {
+		if h := heap[index]; score < h.Score {
+			return true
+		}
+	}
+	return false
+}
 
-	heap[child.Index] = t
-	heap[parent.Index] = child
-	child.Index = parent.Index
+// HasLesserChild Returns true if either is less than HO
+func (heap MinHeap) HasLesserChild(ho HeapObject) bool {
+	leftIndex := ho.Index * 2
+	rightIndex := ho.Index*2 + 1
+
+	if leftIndex < len(heap) {
+		if child := heap[leftIndex]; child.Score < ho.Score {
+			return true
+		}
+	}
+	if rightIndex < len(heap) {
+		if child := heap[rightIndex]; child.Score < ho.Score {
+			return true
+		}
+	}
+
+	return false
+}
+
+// LesserChildIndex Returns the lesser child index and boolean if one exists at all
+func (heap MinHeap) LesserChildIndex(ho HeapObject) (int, bool) {
+	if !heap.HasLesserChild(ho) {
+		return 0, false
+	}
+	var leftChild, rightChild *HeapObject
+	leftIndex := ho.Index * 2
+	rightIndex := ho.Index*2 + 1
+	if leftIndex < len(heap) {
+		leftChild = &heap[leftIndex]
+	}
+	if rightIndex < len(heap) {
+		rightChild = &heap[rightIndex]
+	}
+
+	if leftChild != nil {
+		if rightChild != nil && rightChild.Score < leftChild.Score {
+			return rightIndex, true
+		}
+		return leftIndex, true
+	}
+	return 0, false
+}
+
+// Swap Swap a into b's position and b to a's
+func (heap MinHeap) Swap(child, parent HeapObject) MinHeap {
+	pi, ci := parent.Index, child.Index
+	a := heap[pi]
+	b := heap[ci]
+	a.Index = ci
+	b.Index = pi
+	heap[pi] = b
+	heap[ci] = a
+
 	return heap
+}
+func (heap MinHeap) display() {
+	fmt.Println("--HEAP STATE--")
+	for i, ho := range heap {
+		fmt.Printf("\t %d -> %d.Score[%d]\n", i, ho.Index, ho.Score)
+	}
 }
 
 // Insert Add a new member
-func (heap Heap) Insert(ho HeapObject) Heap {
+func (heap MinHeap) Insert(ho HeapObject) MinHeap {
 	ho.Index = len(heap)
 	newHeap := append(heap, ho)
 	if ho.Index == 1 {
@@ -54,30 +105,31 @@ func (heap Heap) Insert(ho HeapObject) Heap {
 }
 
 // Pop Return the Root
-func (heap Heap) Pop() (Heap, HeapObject) {
-	root := heap[1]
+func (heap MinHeap) Pop() (HeapObject, MinHeap) {
+	oldRoot := heap[1]
 	newHeap := NewMinHeap()
 
 	newRoot := heap[len(heap)-1]
 	newRoot.Index = 1
 	// Root the tree at the newRoot
 	newHeap = append(newHeap, newRoot)
-	newHeap = append(newHeap, heap[2:]...)
+	// The deepest element should be ommitted from the new slice
+	newHeap = append(newHeap, heap[2:len(heap)-1]...)
 	// While the moved element Score is > than at least one child
-	for !newHeap.LessThanIndex(newRoot.Index*2, (newRoot.Index*2)+1) {
-		// Swap newRoot with the lesser child
-		// TODO: :Complete
+	for newHeap.HasLesserChild(newRoot) {
+		childIndex, _ := newHeap.LesserChildIndex(newRoot)
+		newHeap = newHeap.Swap(newHeap[childIndex], newRoot)
+		newRoot = newHeap[childIndex]
 	}
-
-	}
+	return oldRoot, newHeap
 }
 
 // Peek Show the root
-func (heap Heap) Peek() HeapObject {
+func (heap MinHeap) Peek() HeapObject {
 	return heap[ROOT]
 }
 
 // NewMinHeap Min is always at the head
-func NewMinHeap() Heap {
-	return Heap{HeapObject{}}
+func NewMinHeap() MinHeap {
+	return MinHeap{HeapObject{}}
 }
