@@ -71,14 +71,14 @@ func (heap MinHeap) LesserChildIndex(ho HeapObject) (int, bool) {
 }
 
 // Swap Swap a into b's position and b to a's
-func (heap MinHeap) Swap(child, parent HeapObject) MinHeap {
-	pi, ci := parent.Index, child.Index
-	a := heap[pi]
-	b := heap[ci]
-	a.Index = ci
-	b.Index = pi
-	heap[pi] = b
-	heap[ci] = a
+func (heap MinHeap) Swap(i, j int) MinHeap {
+
+	a := heap[i]
+	b := heap[j]
+	a.Index = j
+	b.Index = i
+	heap[i] = b
+	heap[j] = a
 
 	return heap
 }
@@ -98,7 +98,7 @@ func (heap MinHeap) Insert(ho HeapObject) MinHeap {
 	}
 
 	for newHeap.LessThanParent(ho) {
-		newHeap = newHeap.Swap(ho, newHeap[ho.Index/2])
+		newHeap = newHeap.Swap(ho.Index, ho.Index/2)
 		ho = newHeap[ho.Index/2]
 	}
 	return newHeap
@@ -118,7 +118,7 @@ func (heap MinHeap) Pop() (HeapObject, MinHeap) {
 	// While the moved element Score is > than at least one child
 	for newHeap.HasLesserChild(newRoot) {
 		childIndex, _ := newHeap.LesserChildIndex(newRoot)
-		newHeap = newHeap.Swap(newHeap[childIndex], newRoot)
+		newHeap = newHeap.Swap(childIndex, newRoot.Index)
 		newRoot = newHeap[childIndex]
 	}
 	return oldRoot, newHeap
