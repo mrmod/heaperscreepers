@@ -2,7 +2,7 @@ package heap
 
 import "testing"
 
-func TestInsert(t *testing.T) {
+func TestMinInsert(t *testing.T) {
 	h := NewMinHeap()
 	if len(h) != 1 {
 		t.Fatal("Expected only one element (nil root)")
@@ -26,7 +26,7 @@ func TestInsert(t *testing.T) {
 	}
 }
 
-func TestPop(t *testing.T) {
+func TestMinPop(t *testing.T) {
 	h := NewMinHeap()
 	h = h.Insert(HeapObject{Score: 14})
 	h = h.Insert(HeapObject{Score: 23})
